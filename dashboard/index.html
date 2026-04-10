@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AgentCare X — Interactive Dashboard</title>
+  <meta name="description" content="AgentCare X: AI Customer Operations Benchmark — Interactive Dashboard for evaluating AI support agents on reasoning, empathy, and tool usage." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css?v=2" />
+  <script>
+    // Apply theme early to prevent flash
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+  </script>
+</head>
+<body>
+  <!-- Animated background particles -->
+  <div class="bg-particles" id="bgParticles"></div>
+
+  <!-- Top navigation bar -->
+  <header class="top-bar">
+    <div class="logo-group">
+      <div class="logo-icon">
+        <svg viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="2" width="28" height="28" rx="8" fill="url(#logoGrad)" />
+          <path d="M10 16L14 20L22 12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <defs>
+            <linearGradient id="logoGrad" x1="2" y1="2" x2="30" y2="30">
+              <stop stop-color="#6366f1"/>
+              <stop offset="1" stop-color="#a855f7"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="logo-name">AgentCare</span>
+        <span class="logo-badge">X</span>
+      </div>
+    </div>
+    <div class="top-bar-center">
+      <span class="env-badge">OpenEnv Benchmark</span>
+      <span class="status-dot" id="serverStatus"></span>
+      <span class="status-text" id="serverStatusText">Connecting…</span>
+    </div>
+    <div class="top-bar-right" style="display:flex; align-items:center; gap: 1rem;">
+      <button id="btnInfoToggle" class="btn-theme" title="Information">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-info"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+      </button>
+      <button id="btnThemeToggle" class="btn-theme" title="Toggle Light/Dark Theme">
+        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="icon-sun"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+      <span class="version-tag">v1.0.0</span>
+    </div>
+  </header>
+
+  <!-- Main content -->
+  <main class="dashboard">
+    <!-- LEFT: Task panel + controls -->
+    <aside class="panel panel-left">
+      <div class="panel-header">
+        <h2>Tasks</h2>
+        <span class="panel-subtitle">Select a scenario</span>
+      </div>
+
+      <div class="task-cards" id="taskCards">
+        <!-- Filled by JS -->
+      </div>
+
+      <div class="controls-section">
+        <h3>Run Configuration</h3>
+        <div class="control-group">
+          <label for="runMode">Agent Mode</label>
+          <div class="select-wrapper">
+            <select id="runMode">
+              <option value="mock">Mock (Scripted)</option>
+              <option value="manual">Manual (You play)</option>
+            </select>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btnStart" disabled>
+          <span class="btn-icon">▶</span>
+          Start Episode
+        </button>
+        <button class="btn-secondary" id="btnReset" disabled>
+          Reset
+        </button>
+      </div>
+    </aside>
+
+    <!-- CENTER: Chat + interaction -->
+    <section class="panel panel-center">
+      <div class="panel-header">
+        <h2>Live Interaction</h2>
+        <div class="turn-indicator">
+          <span>Turn</span>
+          <span class="turn-count" id="turnCount">0</span>
+          <span>/</span>
+          <span id="maxTurns">10</span>
+        </div>
+      </div>
+
+      <div class="chat-area" id="chatArea">
+        <div class="chat-placeholder" id="chatPlaceholder">
+          <div class="placeholder-icon">
+            <svg viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="32" r="28" stroke="url(#phGrad)" stroke-width="2" stroke-dasharray="4 4"/>
+              <path d="M22 28C22 26 24 24 26 24H38C40 24 42 26 42 28V36C42 38 40 40 38 40H30L24 44V40H26C24 40 22 38 22 36V28Z" fill="url(#phGrad)" opacity="0.3"/>
+              <path d="M28 30H36M28 34H33" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round"/>
+              <defs>
+                <linearGradient id="phGrad" x1="4" y1="4" x2="60" y2="60">
+                  <stop stop-color="#6366f1"/>
+                  <stop offset="1" stop-color="#a855f7"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <p>Select a task and click <strong>Start Episode</strong> to begin</p>
+        </div>
+      </div>
+
+      <!-- Manual input area -->
+      <div class="input-area" id="inputArea" style="display:none;">
+        <div class="input-mode-tabs">
+          <button class="mode-tab active" data-mode="respond" id="tabRespond">💬 Respond</button>
+          <button class="mode-tab" data-mode="tool" id="tabTool">🔧 Use Tool</button>
+        </div>
+
+        <!-- Respond mode -->
+        <div class="input-respond" id="inputRespond">
+          <textarea id="agentMessage" placeholder="Type your empathetic response to the customer…" rows="2"></textarea>
+          <button class="btn-send" id="btnSend">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+
+        <!-- Tool mode -->
+        <div class="input-tool" id="inputTool" style="display:none;">
+          <div class="tool-selector">
+            <select id="toolSelect">
+              <option value="check_order_status">🔍 check_order_status</option>
+              <option value="process_refund">💰 process_refund</option>
+              <option value="escalate_to_manager">📢 escalate_to_manager</option>
+            </select>
+          </div>
+          <div class="tool-params" id="toolParams">
+            <!-- Filled dynamically -->
+          </div>
+          <button class="btn-send btn-tool-send" id="btnToolSend">
+            Execute Tool
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Metrics + scoring -->
+    <aside class="panel panel-right">
+      <div class="panel-header">
+        <h2>Metrics</h2>
+        <span class="panel-subtitle">Real-time scoring</span>
+      </div>
+
+      <!-- Emotion gauge -->
+      <div class="metric-card emotion-card">
+        <div class="metric-label">Customer Emotion</div>
+        <div class="emotion-gauge-wrapper">
+          <div class="emotion-gauge">
+            <svg viewBox="0 0 120 70" class="gauge-svg">
+              <path d="M 10 65 A 50 50 0 0 1 110 65" fill="none" stroke="#1e1b4b" stroke-width="8" stroke-linecap="round"/>
+              <path d="M 10 65 A 50 50 0 0 1 110 65" fill="none" stroke="url(#emotionGrad)" stroke-width="8" stroke-linecap="round"
+                    stroke-dasharray="157" id="emotionArc" style="stroke-dashoffset: 157"/>
+              <defs>
+                <linearGradient id="emotionGrad">
+                  <stop offset="0%" stop-color="#22c55e"/>
+                  <stop offset="50%" stop-color="#eab308"/>
+                  <stop offset="100%" stop-color="#ef4444"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="emotion-value" id="emotionValue">0.00</div>
+          </div>
+          <div class="emotion-labels">
+            <span>😊 Calm</span>
+            <span>😤 Furious</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Emotion sparkline -->
+      <div class="metric-card">
+        <div class="metric-label">Emotion History</div>
+        <canvas id="emotionChart" width="260" height="80"></canvas>
+      </div>
+
+      <!-- Reward tracker -->
+      <div class="metric-card">
+        <div class="metric-label">Cumulative Reward</div>
+        <div class="reward-display">
+          <span class="reward-value" id="rewardValue">0.0000</span>
+        </div>
+        <div class="reward-bar-track">
+          <div class="reward-bar-fill" id="rewardBar" style="width:50%"></div>
+        </div>
+      </div>
+
+      <!-- Tools used -->
+      <div class="metric-card">
+        <div class="metric-label">Tools Called</div>
+        <div class="tool-chips" id="toolChips">
+          <span class="chip chip-empty">None yet</span>
+        </div>
+      </div>
+
+      <!-- Reward breakdown -->
+      <div class="metric-card">
+        <div class="metric-label">Step Reward Breakdown</div>
+        <div class="breakdown-list" id="breakdownList">
+          <div class="breakdown-empty">Waiting for actions…</div>
+        </div>
+      </div>
+
+      <!-- Final scores (shown at end) -->
+      <div class="metric-card final-scores" id="finalScores" style="display:none;">
+        <div class="metric-label">Final Grading</div>
+        <div class="score-grid">
+          <div class="score-item">
+            <div class="score-ring" id="ringResolution">
+              <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#1e1b4b" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#6366f1" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="113" class="score-arc"/></svg>
+              <span class="score-val">0%</span>
+            </div>
+            <span>Resolution</span>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" id="ringToolUsage">
+              <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#1e1b4b" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#a855f7" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="113" class="score-arc"/></svg>
+              <span class="score-val">0%</span>
+            </div>
+            <span>Tool Usage</span>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" id="ringEmotionIQ">
+              <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#1e1b4b" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#ec4899" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="113" class="score-arc"/></svg>
+              <span class="score-val">0%</span>
+            </div>
+            <span>Emotional IQ</span>
+          </div>
+          <div class="score-item">
+            <div class="score-ring" id="ringEfficiency">
+              <svg viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#1e1b4b" stroke-width="3"/><circle cx="22" cy="22" r="18" fill="none" stroke="#22c55e" stroke-width="3" stroke-dasharray="113" stroke-dashoffset="113" class="score-arc"/></svg>
+              <span class="score-val">0%</span>
+            </div>
+            <span>Efficiency</span>
+          </div>
+        </div>
+        <div class="final-score-total">
+          <span>Final Score</span>
+          <span class="final-score-number" id="finalScoreNumber">0.0000</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <!-- Info Modal -->
+  <div class="modal-overlay" id="infoModalOverlay" style="display:none;">
+    <div class="modal-content">
+      <button class="modal-close" id="btnInfoClose">&times;</button>
+      <h2>About AgentCare X</h2>
+      
+      <div class="modal-body">
+        <h3>🚀 How the System Works</h3>
+        <p>AgentCare X is a simulated OpenEnv benchmark environment for evaluating autonomous AI customer support agents. It simulates dynamic customer interactions where the agent must reason about the customer's emotions, use backend tools (like checking inventory or processing refunds), and resolve issues efficiently without hallucinating.</p>
+        
+        <h3>🎮 How to Use It</h3>
+        <ul>
+          <li><strong>Mock Mode:</strong> Select a task and click "Start Episode" to watch a pre-scripted agent interact with the environment automatically.</li>
+          <li><strong>Manual Mode:</strong> Play as the agent yourself! Select a task, choose "Manual (You play)", and hit start. Use the "Respond" tab to chat, and the "Use Tool" tab to execute backend commands.</li>
+          <li><strong>Scoring:</strong> Your performance is graded in real-time based on your tool usage accuracy, interaction efficiency, and how well you manage the customer's emotion level.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast notifications -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="app.js?v=2"></script>
+  <script>
+    // Theme toggle logic
+    document.getElementById('btnThemeToggle').addEventListener('click', () => {
+      const root = document.documentElement;
+      const current = root.getAttribute('data-theme');
+      if (current === 'light') {
+        root.removeAttribute('data-theme');
+        localStorage.setItem('theme', 'dark');
+      } else {
+        root.setAttribute('data-theme', 'light');
+        localStorage.setItem('theme', 'light');
+      }
+    });
+  </script>
+</body>
+</html>

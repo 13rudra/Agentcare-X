@@ -1,0 +1,11 @@
+spec_version: 1
+name: agentcare-x
+version: "1.0.0"
+description: >-
+  AI Customer Operations Environment — evaluates agents on multi-step reasoning,
+  tool use, and emotional intelligence in customer support scenarios.
+  Simulates real customer issues (refund, delay, wrong item) with deterministic
+  grading and dense reward signals.
+type: rest
+app:
+  port: 7860
