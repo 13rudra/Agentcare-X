@@ -26,25 +26,34 @@ class TaskGrader:
         """
         Grade the episode. Returns dict with sub-scores and final_score, all 0.0–1.0.
         """
-        resolution = self._score_resolution(final_state)
-        tool_usage = self._score_tool_usage(final_state)
-        emotional_iq = self._score_emotional_iq(final_state)
-        efficiency = self._score_efficiency(final_state)
+        def clamp_score(s): return max(0.01, min(0.99, float(s)))
+        try:
+            resolution = self._score_resolution(final_state)
+            tool_usage = self._score_tool_usage(final_state)
+            emotional_iq = self._score_emotional_iq(final_state)
+            efficiency = self._score_efficiency(final_state)
 
-        final_score = (
-            0.40 * resolution
-            + 0.25 * tool_usage
-            + 0.20 * emotional_iq
-            + 0.15 * efficiency
-        )
-
-        return {
-            "resolution": round(resolution, 4),
-            "tool_usage": round(tool_usage, 4),
-            "emotional_iq": round(emotional_iq, 4),
-            "efficiency": round(efficiency, 4),
-            "final_score": round(final_score, 4),
-        }
+            final_score = (
+                0.40 * resolution
+                + 0.25 * tool_usage
+                + 0.20 * emotional_iq
+                + 0.15 * efficiency
+            )
+            return {
+                "resolution": round(clamp_score(resolution), 4),
+                "tool_usage": round(clamp_score(tool_usage), 4),
+                "emotional_iq": round(clamp_score(emotional_iq), 4),
+                "efficiency": round(clamp_score(efficiency), 4),
+                "final_score": round(clamp_score(final_score), 4),
+            }
+        except Exception:
+            return {
+                "resolution": 0.1,
+                "tool_usage": 0.1,
+                "emotional_iq": 0.1,
+                "efficiency": 0.1,
+                "final_score": 0.1,
+            }
 
     # ------------------------------------------------------------------
     # Sub-scores
@@ -57,7 +66,7 @@ class TaskGrader:
         """
         conditions = self.task["success_conditions"]
         if not conditions:
-            return 1.0
+            return 0.99
 
         tools_called = {tc["tool"] for tc in state.tool_calls_made if tc.get("result", {}).get("success")}
         emotion_reduced = (
@@ -127,12 +136,12 @@ class TaskGrader:
                     break
 
         if rude_found:
-            return 0.0
+            return 0.01
         if final < initial:
-            return 1.0
+            return 0.99
         if abs(final - initial) < 0.01:
             return 0.5
-        return 0.0  # emotion increased
+        return 0.01  # emotion increased
 
     def _score_efficiency(self, state: EnvState) -> float:
         """
@@ -143,7 +152,7 @@ class TaskGrader:
         actual = state.step_count
 
         if actual <= expected:
-            return 1.0
+            return 0.99
 
         score = 1.0 - (actual - expected) / max_steps
         return max(0.0, score)

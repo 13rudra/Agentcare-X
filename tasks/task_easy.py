@@ -28,4 +28,9 @@ TASK: dict = {
         "order_date": "2024-03-15",
         "estimated_delivery": "2024-03-22",
     },
+    "id": "easy",
+    "prompt": "Check order status for ORD-20240315-001.",
+    "expected_output": "Your order is on its way and will arrive as scheduled.",
 }
+from .utils import keyword_grader
+TASK["grader"] = keyword_grader

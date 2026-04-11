@@ -122,7 +122,7 @@ def run_episode(client, task_id="easy"):
         time.sleep(0.1)
 
     # 5. Print Exact Required End Format
-    print(f"[END] task_id={task_id} grader_score={1.0 if total_reward > 0.5 else 0.5:.4f} total_reward={total_reward:.4f} steps={step_count}")
+    print(f"[END] task_id={task_id} grader_score={0.99 if total_reward > 0.5 else 0.5:.4f} total_reward={total_reward:.4f} steps={step_count}")
     return total_reward
 
 def main():

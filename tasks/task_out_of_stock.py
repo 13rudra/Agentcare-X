@@ -38,4 +38,10 @@ TASK: dict = {
         "order_date": "2024-03-20",
         "estimated_delivery": "2024-03-28",
     },
+
+    "id": "out_of_stock",
+    "prompt": "My camera is out of stock.",
+    "expected_output": "I can check inventory and offer alternatives."
 }
+from .utils import keyword_grader
+TASK["grader"] = keyword_grader

@@ -1,3 +1,11 @@
+---
+title: AgentCare X
+emoji: 🏥
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+pinned: false
+---
 <![CDATA[<div align="center">
 
 # 🏥 AgentCare X

@@ -1,6 +1,6 @@
 """
 AgentCare X — FastAPI Server
-OpenEnv-compliant REST API
+OpenEnv-compliant REST API for the customer support RL environment.
 """
 
 from __future__ import annotations
@@ -8,7 +8,7 @@ from __future__ import annotations
 import sys
 import pathlib
 
-# Ensure project root is always in Python path
+# Ensure project root is always in Python path (required for Docker)
 _ROOT = pathlib.Path(__file__).resolve().parent.parent
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
@@ -158,4 +158,23 @@ def root():
 
 # Mount dashboard LAST so it doesn't override API routes
 if _DASHBOARD_DIR.exists():
-    app.mount("/dashboard", StaticFiles(directory=str(_DASHBOARD_DIR), html=True), name="dashboard")
+    app.mount(
+        "/dashboard",
+        StaticFiles(directory=str(_DASHBOARD_DIR), html=True),
+        name="dashboard"
+    )
+
+
+def main():
+    """Entry point for [project.scripts] — required by openenv validate."""
+    import uvicorn
+    uvicorn.run(
+        "server.app:app",
+        host="0.0.0.0",
+        port=7860,
+        reload=False,
+    )
+
+
+if __name__ == "__main__":
+    main()

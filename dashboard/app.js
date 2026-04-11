@@ -8,11 +8,19 @@
  */
 
 // ─── Dynamic API Base URL ──────────────────────────────────────────
-// On HuggingFace Spaces the app runs at window.location.origin (port 443/80)
-// Locally it runs at port 7860
-const API = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-  ? "http://localhost:7860"
-  : window.location.origin;
+// Detects environment and sets correct backend URL
+function getApiBase() {
+  const protocol = window.location.protocol;
+  const host = window.location.hostname;
+  // Local development or opened via file://
+  if (protocol === 'file:' || host === 'localhost' || host === '127.0.0.1') {
+    return 'http://localhost:7860';
+  }
+  // HuggingFace Spaces — use origin (https://username-spacename.hf.space)
+  return protocol + '//' + window.location.host;
+}
+const API = getApiBase();
+console.log('[AgentCare X] API base URL:', API);
 
 // ─── State ─────────────────────────────────────────────────────────
 let selectedTaskId = null;
@@ -153,7 +161,9 @@ function initParticles() {
 // ─── Server Health Check ──────────────────────────────────────────
 async function checkServerHealth() {
   try {
-    const res = await fetch(`${API}/health`);
+    const url = `${API}/health`;
+    console.log("[AgentCare X] Health check at:", url);
+    const res = await fetch(url, { cache: "no-store" });
     const data = await res.json();
     if (data.status === "ok") {
       $serverStatus.className = "status-dot online";
@@ -161,12 +171,13 @@ async function checkServerHealth() {
     } else {
       $serverStatus.className = "status-dot offline";
       $serverStatusText.textContent = "Server Offline";
+      setTimeout(checkServerHealth, 3000);
     }
-  } catch {
+  } catch (err) {
+    console.warn("[AgentCare X] Health check failed:", err.message, "- retrying in 3s");
     $serverStatus.className = "status-dot offline";
     $serverStatusText.textContent = "Server Offline";
-    // Retry after 5 seconds
-    setTimeout(checkServerHealth, 5000);
+    setTimeout(checkServerHealth, 3000);
   }
 }
 

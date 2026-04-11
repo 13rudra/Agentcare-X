@@ -12,8 +12,6 @@ from typing import Any
 from models import OrderInfo, ToolSpec
 
 
-
-
 # ---------------------------------------------------------------------------
 # Tool specifications (shown to agents in Observation.available_tools)
 # ---------------------------------------------------------------------------

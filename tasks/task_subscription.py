@@ -39,4 +39,9 @@ TASK: dict = {
         "order_date": "2024-03-01",
         "estimated_delivery": "2024-03-31",
     },
+    "id": "subscription",
+    "prompt": "Cancel my subscription.",
+    "expected_output": "I can offer a retention discount instead."
 }
+from .utils import keyword_grader
+TASK["grader"] = keyword_grader

@@ -30,4 +30,9 @@ TASK: dict = {
         "order_date": "2024-03-10",
         "estimated_delivery": "2024-03-17",
     },
+    "id": "medium",
+    "prompt": "Where is my delayed order?",
+    "expected_output": "I will check your order and process a refund.",
 }
+from .utils import keyword_grader
+TASK["grader"] = keyword_grader
