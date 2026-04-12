@@ -8,7 +8,6 @@ __pycache__
 *.md
 !README.md
 .venv
-uv.lock
 *.egg-info
 dist
 build
